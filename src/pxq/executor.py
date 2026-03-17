@@ -217,8 +217,6 @@ class JobExecutor:
                 }
             )
             # Use runpod/base for CPU pods (required for secret expansion)
-            # Use PyTorch image for GPU pods
-            # Explicit image_name overrides defaults
             if job.image_name:
                 image_name = job.image_name
             elif compute_type == ComputeType.CPU:
@@ -226,19 +224,22 @@ class JobExecutor:
             else:
                 image_name = "runpod/pytorch:2.2.0-py3.10-cuda12.1.1-devel-ubuntu22.04"
 
+            ssh_pubkey = None
+            if self.settings.runpod_ssh_public_key_path:
+                pubkey_path = self.settings.runpod_ssh_public_key_path.expanduser()
+                if pubkey_path.exists():
+                    ssh_pubkey = pubkey_path.read_text().strip()
+
             request = PodCreateRequest(
                 name=f"pxq-job-{job.id}",
                 image_name=image_name,
                 compute_type=compute_type,
                 cloud_type=cloud_type,
-                # GPU fields (only set for GPU jobs)
                 gpu_type_ids=gpu_type_ids,
                 gpu_count=gpu_count,
-                # CPU fields (only set for CPU jobs)
                 cpu_flavor_ids=cpu_flavor_ids,
                 vcpu_count=vcpu_count,
                 env=env_vars,
-                # Common fields
                 data_center_ids=[job.region] if job.region else None,
                 network_volume_id=job.volume_id,
                 volume_mount_path=job.volume_mount_path
@@ -248,6 +249,7 @@ class JobExecutor:
                 container_disk_in_gb=20,
                 volume_in_gb=0 if job.volume_id is None else 30,
                 start_ssh=True,
+                ssh_pubkey=ssh_pubkey,
             )
 
             pod = await runpod_client.create_pod(request)

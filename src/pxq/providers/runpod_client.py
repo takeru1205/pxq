@@ -90,12 +90,13 @@ class PodCreateRequest(BaseModel):
     gpu_count: int = 1
     min_memory_in_gb: Optional[int] = None
     network_volume_id: Optional[str] = None
-    cpu_flavor_ids: Optional[list[str]] = None  # e.g., ["cpu3c", "cpu3g"]
-    vcpu_count: Optional[int] = None  # For CPU pods
-    template_id: Optional[str] = None  # RunPod Template ID
+    cpu_flavor_ids: Optional[list[str]] = None
+    vcpu_count: Optional[int] = None
+    template_id: Optional[str] = None
     start_ssh: bool = True
     support_public_ip: bool = True
     data_center_ids: Optional[list[str]] = None
+    ssh_pubkey: Optional[str] = None
 
 
 class PodResponse(BaseModel):
@@ -448,7 +449,9 @@ class RunPodClient:
         if request.env:
             payload["env"] = request.env
 
-        # Execute REST API call - FULL DEBUG
+        if request.ssh_pubkey:
+            payload["sshPubkey"] = request.ssh_pubkey
+
         import sys
         import json
 
