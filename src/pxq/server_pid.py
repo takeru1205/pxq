@@ -141,39 +141,7 @@ def _get_server_port() -> int:
 
 
 def _is_pxq_process(pid: int) -> bool:
-    """Check if a process is a pxq server process.
-
-    Verifies the process cmdline contains 'uvicorn pxq.server:app' or similar.
-
-    Parameters
-    ----------
-    pid : int
-        The process ID to check.
-
-    Returns
-    -------
-    bool
-        True if the process is a pxq server, False otherwise.
-    """
     try:
-        # Try macOS/BSD style first (ps -o command=)
-        result = subprocess.run(
-            ["ps", "-p", str(pid), "-o", "command="],
-            capture_output=True,
-            text=True,
-            timeout=5,
-        )
-        if result.returncode == 0:
-            cmdline = result.stdout.strip()
-            # Check for pxq server identity markers
-            return (
-                "uvicorn pxq.server:app" in cmdline
-                or "pxq.server:app" in cmdline
-                or "pxq.server:create_app" in cmdline
-                or "-m pxq server" in cmdline
-            )
-
-        # Fallback: try reading /proc/{pid}/cmdline (Linux)
         try:
             cmdline_path = Path(f"/proc/{pid}/cmdline")
             if cmdline_path.exists():
@@ -186,6 +154,21 @@ def _is_pxq_process(pid: int) -> bool:
                 )
         except (OSError, IOError):
             pass
+
+        result = subprocess.run(
+            ["ps", "-p", str(pid), "-o", "command="],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        if result.returncode == 0:
+            cmdline = result.stdout.strip()
+            return (
+                "uvicorn pxq.server:app" in cmdline
+                or "pxq.server:app" in cmdline
+                or "pxq.server:create_app" in cmdline
+                or "-m pxq server" in cmdline
+            )
 
         return False
     except (subprocess.TimeoutExpired, OSError):
@@ -201,33 +184,17 @@ def _get_pid_listening_on_port(port: int) -> Optional[int]:
     if system == "Linux":
         try:
             result = subprocess.run(
-                ["ss", "-tlnp", f"( sport = :{port})"],
-                capture_output=True,
-                text=True,
-                timeout=5,
-            )
-            if result.returncode == 0 and result.stdout.strip():
-                match = re.search(r"pid=(\d+)", result.stdout)
-                if match:
-                    return int(match.group(1))
-        except (subprocess.TimeoutExpired, OSError, FileNotFoundError):
-            pass
-
-        try:
-            result = subprocess.run(
-                ["netstat", "-tlnp"],
+                ["ss", "-tlnp"],
                 capture_output=True,
                 text=True,
                 timeout=5,
             )
             if result.returncode == 0:
                 for line in result.stdout.split("\n"):
-                    if f":{port}" in line:
-                        parts = line.split()
-                        if parts:
-                            pid_match = re.search(r"(\d+)/", parts[-1] if parts else "")
-                            if pid_match:
-                                return int(pid_match.group(1))
+                    if f":{port} " in line or f":{port}\t" in line:
+                        match = re.search(r"users:\(\(\"[^\"]+\",pid=(\d+)", line)
+                        if match:
+                            return int(match.group(1))
         except (subprocess.TimeoutExpired, OSError, FileNotFoundError):
             pass
 
