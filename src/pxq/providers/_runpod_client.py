@@ -192,7 +192,6 @@ class PodCreateRequest(BaseModel):
     start_ssh: bool = True
     support_public_ip: bool = True
     data_center_id: Optional[str] = None
-    ssh_pubkey: Optional[str] = None
 
 
 class PodResponse(BaseModel):

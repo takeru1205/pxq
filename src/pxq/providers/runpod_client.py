@@ -96,7 +96,6 @@ class PodCreateRequest(BaseModel):
     start_ssh: bool = True
     support_public_ip: bool = True
     data_center_ids: Optional[list[str]] = None
-    ssh_pubkey: Optional[str] = None
 
 
 class PodResponse(BaseModel):
@@ -445,12 +444,8 @@ class RunPodClient:
         if request.docker_args:
             payload["dockerArgs"] = request.docker_args
 
-        # Environment variables (passed verbatim to RunPod for server-side secret expansion)
         if request.env:
             payload["env"] = request.env
-
-        if request.ssh_pubkey:
-            payload["sshPubkey"] = request.ssh_pubkey
 
         import sys
         import json

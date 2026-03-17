@@ -230,6 +230,10 @@ class JobExecutor:
                 if pubkey_path.exists():
                     ssh_pubkey = pubkey_path.read_text().strip()
 
+            env_vars_with_ssh = dict(env_vars) if env_vars else {}
+            if ssh_pubkey:
+                env_vars_with_ssh["SSH_PUBLIC_KEY"] = ssh_pubkey
+
             request = PodCreateRequest(
                 name=f"pxq-job-{job.id}",
                 image_name=image_name,
@@ -239,7 +243,7 @@ class JobExecutor:
                 gpu_count=gpu_count,
                 cpu_flavor_ids=cpu_flavor_ids,
                 vcpu_count=vcpu_count,
-                env=env_vars,
+                env=env_vars_with_ssh,
                 data_center_ids=[job.region] if job.region else None,
                 network_volume_id=job.volume_id,
                 volume_mount_path=job.volume_mount_path
@@ -249,7 +253,6 @@ class JobExecutor:
                 container_disk_in_gb=20,
                 volume_in_gb=0 if job.volume_id is None else 30,
                 start_ssh=True,
-                ssh_pubkey=ssh_pubkey,
             )
 
             pod = await runpod_client.create_pod(request)
