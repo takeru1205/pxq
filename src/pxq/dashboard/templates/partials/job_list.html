@@ -20,33 +20,33 @@
     <table class="w-full text-left text-sm">
       <thead class="text-xs uppercase tracking-[0.16em] muted">
         <tr>
-          <th class="px-4 sm:px-6 py-3">ID</th>
-          <th class="px-4 sm:px-6 py-3">Status</th>
-          <th class="px-4 sm:px-6 py-3">Provider</th>
-          <th class="px-4 sm:px-6 py-3">Command</th>
-          <th class="px-4 sm:px-6 py-3">Updated</th>
-          <th class="px-4 sm:px-6 py-3">Runtime</th>
-          <th class="px-4 sm:px-6 py-3"></th>
+          <th class="px-3 sm:px-4 py-3 w-16 min-w-[64px]">ID</th>
+          <th class="px-3 sm:px-4 py-3 w-28 min-w-[112px]">Status</th>
+          <th class="px-3 sm:px-4 py-3 w-20 min-w-[80px]">Provider</th>
+          <th class="px-3 sm:px-4 py-3">Command</th>
+          <th class="px-3 sm:px-4 py-3 w-28 min-w-[112px] hidden lg:table-cell">Updated</th>
+          <th class="px-3 sm:px-4 py-3 w-24 min-w-[96px] hidden xl:table-cell">Runtime</th>
+          <th class="px-3 sm:px-4 py-3 w-20 min-w-[80px]"></th>
         </tr>
       </thead>
       <tbody class="divide-y divide-white/5">
         {% for job in jobs %}
           <tr class="hover:bg-white/5 transition">
-            <td class="px-4 sm:px-6 py-3 mono">{{ job.id }}</td>
-            <td class="px-4 sm:px-6 py-3">
+            <td class="px-3 sm:px-4 py-3 mono">{{ job.id }}</td>
+            <td class="px-3 sm:px-4 py-3">
               <span class="mono text-xs px-2 py-1 rounded-lg {{ status_color.get(job.status.value, 'bg-white/10 border border-white/10') }}">{{ job.status.value }}</span>
             </td>
-            <td class="px-4 sm:px-6 py-3 mono">{{ job.provider }}</td>
-            <td class="px-4 sm:px-6 py-3">
-              <div class="mono text-xs whitespace-nowrap overflow-hidden text-ellipsis max-w-[38ch] sm:max-w-[64ch]">{{ job.command }}</div>
+            <td class="px-3 sm:px-4 py-3 mono text-xs">{{ job.provider }}</td>
+            <td class="px-3 sm:px-4 py-3">
+              <div class="mono text-xs whitespace-nowrap overflow-hidden text-ellipsis max-w-[16ch] sm:max-w-[24ch] md:max-w-[32ch] lg:max-w-[48ch]" title="{{ job.command }}">{{ job.command }}</div>
             </td>
-            <td class="px-4 sm:px-6 py-3 mono text-xs">{{ fmt_dt(job.updated_at) }}</td>
-            <td class="px-4 sm:px-6 py-3 mono text-xs">
+            <td class="px-3 sm:px-4 py-3 mono text-xs hidden lg:table-cell">{{ fmt_dt(job.updated_at) }}</td>
+            <td class="px-3 sm:px-4 py-3 mono text-xs hidden xl:table-cell">
               {% set d = duration_seconds(job.started_at, job.finished_at) %}
               {{ d if d is not none else '-' }}
             </td>
-            <td class="px-4 sm:px-6 py-3 text-right">
-              <a class="text-xs px-3 py-2 rounded-lg bg-white/10 hover:bg-white/15 transition" href="/jobs/{{ job.id }}">Open</a>
+            <td class="px-3 sm:px-4 py-3 text-right">
+              <a class="text-xs px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 transition whitespace-nowrap" href="/jobs/{{ job.id }}">Open</a>
             </td>
           </tr>
         {% endfor %}

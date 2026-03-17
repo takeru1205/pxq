@@ -1,6 +1,6 @@
 [project]
 name = "pxq"
-version = "0.1.5"
+version = "0.1.6"
 description = "A pueue-like CLI for local and RunPod job management"
 readme = "README.md"
 requires-python = ">=3.11"
