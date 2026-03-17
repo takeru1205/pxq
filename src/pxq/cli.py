@@ -12,6 +12,7 @@ from typing import Optional
 
 import httpx
 import typer
+from typer import Context
 
 from .client import PxqClient
 from .config_loader import (
@@ -32,6 +33,9 @@ from .server_pid import (
     read_pid,
     write_pid,
 )
+
+
+import importlib.metadata
 
 
 def _extract_http_error_message(exc: httpx.HTTPStatusError) -> str:
@@ -63,7 +67,29 @@ def _extract_http_error_message(exc: httpx.HTTPStatusError) -> str:
 app = typer.Typer(
     name="pxq",
     help="A pueue-like CLI for local and RunPod job management.",
+    context_settings={
+        "auto_envvar_prefix": "PXQ",
+    },
 )
+
+
+@app.callback(invoke_without_command=True)
+def version_callback(
+    ctx: typer.Context,
+    version: bool = typer.Option(
+        None,
+        "--version",
+        "-v",
+        help="Show version and exit.",
+    ),
+) -> None:
+    if version:
+        try:
+            ver = importlib.metadata.version("pxq")
+        except importlib.metadata.PackageNotFoundError:
+            ver = "dev"
+        typer.echo(f"pxq version {ver}")
+        raise typer.Exit()
 
 
 @app.command()
