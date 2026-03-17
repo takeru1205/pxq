@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{% block title %}pxq dashboard{% endblock %}</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+
+    <style>
+      :root {
+        --bg0: #0b1020;
+        --bg1: #0f1a33;
+        --fg: #e8ecff;
+        --muted: rgba(232, 236, 255, 0.68);
+      }
+      html,
+      body {
+        height: 100%;
+      }
+      body {
+        font-family: "Spline Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
+        background: radial-gradient(1200px 600px at 10% 0%, rgba(72, 153, 255, 0.18), transparent 55%),
+          radial-gradient(900px 500px at 85% 15%, rgba(0, 255, 204, 0.12), transparent 60%),
+          linear-gradient(180deg, var(--bg0), var(--bg1));
+        color: var(--fg);
+      }
+      .mono {
+        font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+          "Courier New", monospace;
+      }
+      .card {
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+        backdrop-filter: blur(10px);
+      }
+      .muted {
+        color: var(--muted);
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="max-w-6xl mx-auto px-4 py-8">
+      <header class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <div class="text-xs uppercase tracking-[0.22em] muted">pxq</div>
+          <h1 class="text-2xl sm:text-3xl font-semibold leading-tight">Dashboard</h1>
+          <div class="text-sm muted">Server-rendered HTML + HTMX polling (every 10s)</div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          {% block header_actions %}{% endblock %}
+        </div>
+      </header>
+
+      <main class="mt-6">{% block content %}{% endblock %}</main>
+
+      <footer class="mt-10 text-xs muted">
+        <span class="mono">/api</span> remains the programmatic contract; this UI is a thin view.
+      </footer>
+    </div>
+  </body>
+</html>

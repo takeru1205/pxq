@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}pxq dashboard · job {{ job.id }}{% endblock %}
+
+{% block header_actions %}
+  <a class="px-3 py-2 rounded-lg card text-sm hover:bg-white/10 transition" href="/">Jobs</a>
+  <a class="px-3 py-2 rounded-lg card text-sm hover:bg-white/10 transition" href="/api/jobs/{{ job.id }}">API</a>
+{% endblock %}
+
+{% block content %}
+  <section class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+    <div class="card rounded-2xl p-4 sm:p-6 lg:col-span-2">
+      <div class="flex items-start justify-between gap-3">
+        <div>
+          <div class="text-xs uppercase tracking-[0.22em] muted">Job</div>
+          <div class="text-xl font-semibold">#{{ job.id }}</div>
+        </div>
+        <div class="mono text-xs px-3 py-2 rounded-lg bg-white/10">{{ job.status.value }}</div>
+      </div>
+
+      <div class="mt-4">
+        <div class="text-xs uppercase tracking-[0.22em] muted">Command</div>
+        <pre class="mono mt-2 text-sm whitespace-pre-wrap break-words bg-black/30 border border-white/10 rounded-xl p-3">{{ job.command }}</pre>
+      </div>
+
+      <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+        <div class="card rounded-xl p-3">
+          <div class="text-xs muted">Provider</div>
+          <div class="mono">{{ job.provider }}</div>
+        </div>
+        <div class="card rounded-xl p-3">
+          <div class="text-xs muted">Managed</div>
+          <div class="mono">{{ 'true' if job.managed else 'false' }}</div>
+        </div>
+        <div class="card rounded-xl p-3">
+          <div class="text-xs muted">Created</div>
+          <div class="mono">{{ fmt_dt(job.created_at) }}</div>
+        </div>
+        <div class="card rounded-xl p-3">
+          <div class="text-xs muted">Updated</div>
+          <div class="mono">{{ fmt_dt(job.updated_at) }}</div>
+        </div>
+        <div class="card rounded-xl p-3">
+          <div class="text-xs muted">Started</div>
+          <div class="mono">{{ fmt_dt(job.started_at) }}</div>
+        </div>
+        <div class="card rounded-xl p-3">
+          <div class="text-xs muted">Finished</div>
+          <div class="mono">{{ fmt_dt(job.finished_at) }}</div>
+        </div>
+        <div class="card rounded-xl p-3">
+          <div class="text-xs muted">Duration (s)</div>
+          {% set d = duration_seconds(job.started_at, job.finished_at) %}
+          <div class="mono">{{ d if d is not none else '-' }}</div>
+        </div>
+        <div class="card rounded-xl p-3">
+          <div class="text-xs muted">Exit code</div>
+          <div class="mono">{{ job.exit_code if job.exit_code is not none else '-' }}</div>
+        </div>
+      </div>
+
+      {% if job.error_message %}
+        <div class="mt-4">
+          <div class="text-xs uppercase tracking-[0.22em] muted">Error</div>
+          <div class="mt-2 text-sm bg-red-500/10 border border-red-200/20 rounded-xl p-3">{{ job.error_message }}</div>
+        </div>
+      {% endif %}
+    </div>
+
+    <aside class="card rounded-2xl p-4 sm:p-6">
+      <div class="text-sm font-medium">Identifiers</div>
+      <div class="mt-3 grid gap-2 text-sm">
+        <div class="flex items-center justify-between gap-2">
+          <span class="muted">pod_id</span>
+          <span class="mono">{{ job.pod_id if job.pod_id else '-' }}</span>
+        </div>
+        <div class="flex items-center justify-between gap-2">
+          <span class="muted">workdir</span>
+          <span class="mono">{{ job.workdir if job.workdir else '-' }}</span>
+        </div>
+        <div class="flex items-center justify-between gap-2">
+          <span class="muted">gpu_type</span>
+          <span class="mono">{{ job.gpu_type if job.gpu_type else '-' }}</span>
+        </div>
+        <div class="flex items-center justify-between gap-2">
+          <span class="muted">cpu_count</span>
+          <span class="mono">{{ job.cpu_count if job.cpu_count else '-' }}</span>
+        </div>
+        <div class="flex items-center justify-between gap-2">
+          <span class="muted">volume_id</span>
+          <span class="mono">{{ job.volume_id if job.volume_id else '-' }}</span>
+        </div>
+      </div>
+
+      <div class="mt-6 text-xs muted">This panel is static; logs auto-refresh in the main section.</div>
+    </aside>
+  </section>
+
+  <section class="mt-4 card rounded-2xl overflow-hidden">
+    <div class="px-4 sm:px-6 py-4 border-b border-white/10 flex items-center justify-between">
+      <div>
+        <div class="text-sm font-medium">Log fragment</div>
+        <div class="text-xs muted">Recent events + artifact metadata (polled every 10s).</div>
+      </div>
+      <button
+        class="px-3 py-2 rounded-lg bg-white/10 hover:bg-white/15 transition text-sm"
+        hx-get="/partials/jobs/{{ job.id }}/logs"
+        hx-target="#job-logs"
+        hx-swap="innerHTML"
+      >
+        Refresh
+      </button>
+    </div>
+
+    <div
+      id="job-logs"
+      hx-get="/partials/jobs/{{ job.id }}/logs"
+      hx-trigger="every 10s"
+      hx-swap="innerHTML"
+    >
+      {% include "partials/job_logs.html" %}
+    </div>
+  </section>
+{% endblock %}

@@ -1,0 +1,13 @@
+# Config file for managed pxq job with RunPod secrets
+# This tests the managed mode + secret expansion flow
+provider: runpod
+managed: true
+secure_cloud: true
+gpu_type: RTX2000Ada:2
+region: EU-RO-1
+volume: 3164plmkj3
+volume_path: /kaggle/input
+image_name: runpod/pytorch:2.1.0-py3.10-cuda11.8.0-devel-ubuntu22.04
+workdir: .
+env:
+  KAGGLE_API_TOKEN: "{{ RUNPOD_SECRET_KAGGLE_API_TOKEN }}"

@@ -1,0 +1,82 @@
+{# events/artifacts の欠損に対して safe defaults を使用 #}
+{% set artifacts = artifacts if artifacts else [] %}
+{% set events = events if events else [] %}
+{% set log_artifacts = artifacts | selectattr('artifact_type', 'equalto', 'log') | list %}
+{% set stdout_artifacts = artifacts | selectattr('artifact_type', 'equalto', 'stdout') | list %}
+{% set stderr_artifacts = artifacts | selectattr('artifact_type', 'equalto', 'stderr') | list %}
+{% set total_log_bytes = (log_artifacts | map(attribute='size_bytes') | sum) if log_artifacts else 0 %}
+{% set recent_events = events[-50:] if events else [] %}
+
+<div class="px-4 sm:px-6 py-4">
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+    <div class="card rounded-xl p-3">
+      <div class="text-xs muted">Job status</div>
+      <div class="mono text-sm">{{ job.status.value if job.status else '-' }}</div>
+    </div>
+    <div class="card rounded-xl p-3">
+      <div class="text-xs muted">Log artifacts</div>
+      <div class="mono text-sm">{{ log_artifacts|length }}</div>
+    </div>
+    <div class="card rounded-xl p-3">
+      <div class="text-xs muted">Total bytes (log artifacts)</div>
+      <div class="mono text-sm">{{ total_log_bytes }}</div>
+    </div>
+  </div>
+
+  <div class="mt-4">
+    <div class="text-xs uppercase tracking-[0.16em] muted">Recent events</div>
+    {% if recent_events|length == 0 %}
+      <div class="mt-2 text-sm muted">No events recorded yet.</div>
+    {% else %}
+      <div class="mt-2 space-y-2">
+        {% for ev in recent_events %}
+          <div class="rounded-xl border border-white/10 bg-black/25 px-3 py-2">
+            <div class="flex items-start justify-between gap-3">
+              <div class="mono text-xs muted">{{ fmt_dt(ev.timestamp) if ev.timestamp else '-' }}</div>
+              <div class="mono text-xs px-2 py-1 rounded-lg bg-white/10">{{ ev.to_status.value if ev.to_status else '-' }}</div>
+            </div>
+            <div class="mt-1 text-sm whitespace-pre-wrap break-words">{{ ev.message if ev.message else '-' }}</div>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+
+  {% if stdout_artifacts|length > 0 %}
+  <div class="mt-4">
+    <div class="text-xs uppercase tracking-[0.16em] muted">Stdout content</div>
+    <div class="mt-2 space-y-2">
+      {% for artifact in stdout_artifacts %}
+        <pre class="rounded-xl border border-green-500/50 bg-black/25 px-3 py-2 text-xs overflow-x-auto whitespace-pre-wrap break-words">{{ artifact.content if artifact.content else '(no content)' }}</pre>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if stderr_artifacts|length > 0 %}
+  <div class="mt-4">
+    <div class="text-xs uppercase tracking-[0.16em] muted">Stderr content</div>
+    <div class="mt-2 space-y-2">
+      {% for artifact in stderr_artifacts %}
+        <pre class="rounded-xl border border-red-500/50 bg-black/25 px-3 py-2 text-xs overflow-x-auto whitespace-pre-wrap break-words">{{ artifact.content if artifact.content else '(no content)' }}</pre>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="mt-4">
+    <div class="text-xs uppercase tracking-[0.16em] muted">Log artifact paths (latest)</div>
+    {% if log_artifacts|length == 0 %}
+      <div class="mt-2 text-sm muted">No log artifacts recorded.</div>
+    {% else %}
+      <div class="mt-2 grid gap-2">
+        {% for a in log_artifacts[-10:] %}
+          <div class="mono text-xs rounded-xl border border-white/10 bg-black/25 px-3 py-2 flex items-center justify-between gap-2">
+            <span class="truncate">{{ a.path if a.path else '-' }}</span>
+            <span class="muted">+{{ a.size_bytes if a.size_bytes else 0 }} bytes</span>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+</div>

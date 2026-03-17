@@ -1,0 +1,6 @@
+# Regression test fixture for volume_path config key
+# Tests that volume_path survives merge with CLI args
+provider: runpod
+gpu_type: RTX4090:1
+volume: vol-123
+volume_path: /kaggle/input

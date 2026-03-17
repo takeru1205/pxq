@@ -1,0 +1,6 @@
+# Negative test fixture for stale mount_path key
+# This key should be rejected as invalid once the fix lands
+# (mount_path was the old, incorrect key name)
+provider: runpod
+gpu_type: RTX4090:1
+mount_path: /kaggle/input

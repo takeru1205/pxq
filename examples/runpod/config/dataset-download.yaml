@@ -1,0 +1,13 @@
+# Config file for managed pxq job with RunPod secrets
+# This tests the managed mode + secret expansion flow
+provider: runpod
+managed: true
+secure_cloud: true
+region: EU-RO-1
+volume: 3164plmkj3
+volume_path: /kaggle/input
+cpu_count: 1
+cpu_flavor_ids:
+  - cpu3c
+env:
+  KAGGLE_API_TOKEN: "{{ RUNPOD_SECRET_KAGGLE_API_TOKEN }}"
