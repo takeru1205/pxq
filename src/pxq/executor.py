@@ -172,7 +172,12 @@ class JobExecutor:
                 job.id,
                 JobStatus.FAILED,
                 message="RunPod API key not configured",
-                error_message="PXQ_RUNPOD_API_KEY environment variable is not set",
+                error_message=(
+                    "PXQ_RUNPOD_API_KEY environment variable is not set. "
+                    "The pxq server reads this variable at startup. "
+                    "Please restart the server after setting: "
+                    "export PXQ_RUNPOD_API_KEY='your-api-key'"
+                ),
             )
 
         runpod_client = RunPodClient(self.settings.runpod_api_key)

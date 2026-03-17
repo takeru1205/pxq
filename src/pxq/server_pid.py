@@ -193,20 +193,44 @@ def _is_pxq_process(pid: int) -> bool:
 
 
 def _get_pid_listening_on_port(port: int) -> Optional[int]:
-    """Get the PID of the process listening on a specific port.
+    import platform
+    import re
 
-    Uses lsof to find the process listening on the given port.
+    system = platform.system()
 
-    Parameters
-    ----------
-    port : int
-        The port number to check.
+    if system == "Linux":
+        try:
+            result = subprocess.run(
+                ["ss", "-tlnp", f"( sport = :{port})"],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            if result.returncode == 0 and result.stdout.strip():
+                match = re.search(r"pid=(\d+)", result.stdout)
+                if match:
+                    return int(match.group(1))
+        except (subprocess.TimeoutExpired, OSError, FileNotFoundError):
+            pass
 
-    Returns
-    -------
-    Optional[int]
-        The PID of the process listening on the port, or None if no process.
-    """
+        try:
+            result = subprocess.run(
+                ["netstat", "-tlnp"],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            if result.returncode == 0:
+                for line in result.stdout.split("\n"):
+                    if f":{port}" in line:
+                        parts = line.split()
+                        if parts:
+                            pid_match = re.search(r"(\d+)/", parts[-1] if parts else "")
+                            if pid_match:
+                                return int(pid_match.group(1))
+        except (subprocess.TimeoutExpired, OSError, FileNotFoundError):
+            pass
+
     try:
         result = subprocess.run(
             ["lsof", "-ti", f":{port}"],
@@ -215,12 +239,10 @@ def _get_pid_listening_on_port(port: int) -> Optional[int]:
             timeout=5,
         )
         if result.returncode == 0 and result.stdout.strip():
-            # lsof may return multiple PIDs (one per connection type)
-            # Take the first one (should be the main listener)
             pid_str = result.stdout.strip().split("\n")[0]
             return int(pid_str)
         return None
-    except (subprocess.TimeoutExpired, OSError, ValueError):
+    except (subprocess.TimeoutExpired, OSError, ValueError, FileNotFoundError):
         return None
 
 
